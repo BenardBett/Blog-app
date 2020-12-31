@@ -62,3 +62,69 @@ def account():
         form.email.data == current_user.email
     return render_template('account.html', title='Account', form=form)
                       
+                      @app.route("/post/new", methods=['GET', 'POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(title=form.title.data,
+                    content=form.content.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post has been created!', 'primary')
+        return redirect(url_for('home'))
+    return render_template('create_blog.html', title='New Post',
+                           form=form, legend='New Post')
+    
+@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    form = CommentForm()
+    comments = Comment.query.all()
+    if form.validate_on_submit():
+        comment = Comment(content=form.content.data)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been posted!', 'primary')
+        return redirect(url_for('home'))
+    return render_template('update.html', title=post.title, post=post, form=form, comments=comments)
+
+
+@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit()
+        flash('Your post has been updated!', 'success')
+        return redirect(url_for('post', post_id=post.id))
+    elif request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template('create_blog.html', title='Update Blog',
+                           form=form, legend='Update Blog')
+
+
+@app.route("/post/<int:post_id>/delete", methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Blog deleted!', 'primary')
+    return redirect(url_for('home'))
+
+
+@app.route("/post/<int:post_id>/delete", methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(post_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Comment deleted!', 'primary')
+    return redirect(url_for('home'))
