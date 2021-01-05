@@ -29,7 +29,7 @@
                             <h2><a class="card-title" href="">{{ post.title }}</a></h2>
                             <p class="card-content">{{ post.content }}</p>
                             <button class="btn btn-outline-secondary" type="button">
-                                <a href="{{url_for('post',post_id=post.id)}}">View Page</a>
+                                <a href="{{url_for('main.post',post_id=post.id)}}">View Page</a>
                             </button>
                         </div>
                     </article>
